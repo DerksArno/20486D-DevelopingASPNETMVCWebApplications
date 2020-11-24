@@ -1,0 +1,16 @@
+﻿@{
+}
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="~/css/style.css" />
+</head>
+<body>
+    <div>
+        <h2>@ViewBag.City.Name</h2>
+        <p>Country: @ViewBag.City.Country</p>
+        <p>Time zone: @ViewBag.City.TimeZone</p>
+        @await Html.PartialAsync("_CityPopulation")
+        <a asp-action="ShowCities">Back</a>
+    </div>
+</body>
+</html>

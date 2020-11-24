@@ -9,11 +9,11 @@ namespace CitiesWebsite.Services
 {
     public class CityProvider : ICityProvider
     {
-        Dictionary<string, City> _cities;
+        private readonly Dictionary<string, City> _cities;
 
         public CityProvider()
         {
-
+            _cities = CityInitializer();
         }
 
         public City this[string name]
