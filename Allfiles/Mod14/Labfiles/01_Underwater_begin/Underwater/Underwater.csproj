@@ -3,8 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <UserSecretsId>d09285f7-06e6-4012-91cb-411944ca83dd</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="node_modules\**" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />

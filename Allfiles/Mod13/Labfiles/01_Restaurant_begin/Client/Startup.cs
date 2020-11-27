@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Client.Middleware;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +16,8 @@ namespace Client
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
+            services.AddHttpClient();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

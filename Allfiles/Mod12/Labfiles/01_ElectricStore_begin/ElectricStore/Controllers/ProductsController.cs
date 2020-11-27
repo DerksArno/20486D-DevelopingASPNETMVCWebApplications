@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace ElectricStore.Controllers
 {
@@ -17,16 +19,28 @@ namespace ElectricStore.Controllers
     {
         private StoreContext _context;
         private IHostingEnvironment _environment;
+        private IMemoryCache _memoryCache;
+        private const string PRODUCT_KEY = "Products";
 
-        public ProductsController(StoreContext context, IHostingEnvironment environment)
+        public ProductsController(StoreContext context, IHostingEnvironment environment, IMemoryCache memoryCache)
         {
             _context = context;
             _environment = environment;
+            _memoryCache = memoryCache;
         }
 
         public IActionResult Index()
         {
-            return View();
+            List<Product> products;
+            if (!_memoryCache.TryGetValue(PRODUCT_KEY, out products))
+            {
+                products = _context.Products.ToList();
+                products.Select(c => { c.LoadedFromDatabase = DateTime.Now; return c; }).ToList();
+                MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions();
+                cacheOptions.SetPriority(CacheItemPriority.High);
+                _memoryCache.Set(PRODUCT_KEY, products, cacheOptions);
+            }
+            return View(products);
         }
 
         public IActionResult GetByCategory(int Id)
@@ -40,6 +54,19 @@ namespace ElectricStore.Controllers
         [HttpGet]
         public IActionResult AddToShoppingList()
         {
+            if (HttpContext.Session.GetString("CustomerFirstName") != null)
+            {
+                Customer sessionCustomer = new Customer()
+                {
+                    FirstName = HttpContext.Session.GetString("CustomerFirstName"),
+                    LastName = HttpContext.Session.GetString("CustomerLastName"),
+                    Email = HttpContext.Session.GetString("CustomerEmail"),
+                    Address = HttpContext.Session.GetString("CustomerAddress"),
+                    PhoneNumber = HttpContext.Session.GetInt32("CustomerPhoneNumber").Value,
+                };
+                PopulateProductsList();
+                return View(sessionCustomer);
+            }
             PopulateProductsList();
             return View();
         }
@@ -49,8 +76,18 @@ namespace ElectricStore.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Customers.Add(customer);
-                _context.SaveChanges();
+                HttpContext.Session.SetString("CustomerFirstName", customer.FirstName);
+                HttpContext.Session.SetString("CustomerLastName", customer.LastName);
+                HttpContext.Session.SetString("CustomerEmail", customer.Email);
+                HttpContext.Session.SetString("CustomerAddress", customer.Address);
+                HttpContext.Session.SetInt32("CustomerPhoneNumber", customer.PhoneNumber);
+                if (HttpContext.Session.GetString("CustomerProducts") != null)
+                {
+                    List<int> productsListId = JsonConvert.DeserializeObject<List<int>>(HttpContext.Session.GetString("CustomerProducts"));
+                    customer.SelectedProductsList.AddRange(productsListId);
+                }
+                var serialisedDate = JsonConvert.SerializeObject(customer.SelectedProductsList);
+                HttpContext.Session.SetString("CustomerProducts", serialisedDate);
                 return RedirectToAction(nameof(Index));
             }
             PopulateProductsList(customer.SelectedProductsList);

@@ -9,9 +9,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Library.Controllers
 {
+    [Authorize(Policy = "RequireEmail")]
+    [Authorize(Roles = "Administrator")]
     public class LibrarianController : Controller
     {
         private LibraryContext _context;
@@ -32,6 +35,7 @@ namespace Library.Controllers
             return View();
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost, ActionName("AddBook")]
         public IActionResult AddBookPost(Book book)
         {

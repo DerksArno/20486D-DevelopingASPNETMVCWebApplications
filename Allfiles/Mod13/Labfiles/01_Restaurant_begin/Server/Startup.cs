@@ -27,6 +27,8 @@ namespace Server
                                                                       .AllowAnyHeader()));
 
             services.AddMvc();
+
+            services.AddHttpClient();
         }
 
         public void Configure(IApplicationBuilder app, RestaurantContext restaurantContext)
